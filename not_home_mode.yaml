@@ -1,0 +1,235 @@
+not_home_mode:
+
+  input_boolean:
+    vacation:
+      name: Отпуск
+      
+  automation:
+  
+    - alias: Vacation mode on
+      initial_state: true
+      trigger:
+        - platform: state
+          entity_id: input_boolean.vacation
+          to: 'on'
+      action:
+        - service: automation.turn_on
+          entity_id: automation.turn_on_light_when_not_home
+        - service: automation.turn_off
+          entity_id:
+            - automation.vacuum_kitchen_hall_bath_sweep
+            - automation.vacuum_room_sweep
+            - automation.turn_on_teeth_brush_charge
+            - automation.fumigator_on
+            - automation.lunch_and_dinner_heat_mode
+            - automation.night_mode_heat
+        - service: switch.turn_off
+          entity_id: switch.water_faucet
+            
+    - alias: Vacation mode off
+      initial_state: true
+      trigger:
+        - platform: state
+          entity_id: input_boolean.vacation
+          to: 'off'
+      action:
+        - service: automation.turn_off
+          entity_id: automation.turn_on_light_when_not_home
+        - service: automation.turn_on
+          entity_id:
+            - automation.vacuum_kitchen_hall_bath_sweep
+            - automation.vacuum_room_sweep
+            - automation.turn_on_teeth_brush_charge
+            - automation.fumigator_on
+            - automation.lunch_and_dinner_heat_mode
+            - automation.night_mode_heat
+        - service: switch.turn_on
+          entity_id: switch.water_faucet
+            
+    - alias: vacation mode detect on
+      initial_state: true
+      trigger:
+        - platform: state
+          entity_id: group.trackdevice
+          to: 'not_home'
+          for:
+            hours: 24
+      condition:
+        condition: state
+        entity_id: input_boolean.vacation
+        state: 'off'
+      action:
+        - service: input_boolean.turn_on
+          entity_id: input_boolean.vacation
+          
+    - alias: vacation mode detect off
+      initial_state: true
+      trigger:
+        - platform: state
+          entity_id: group.trackdevice
+          to: 'home'
+      condition:
+        condition: state
+        entity_id: input_boolean.vacation
+        state: 'on'
+      action:
+        - service: input_boolean.turn_off
+          entity_id: input_boolean.vacation
+ 
+    - alias: Turn on light when not_home
+      mode: parallel
+      trigger:
+        - platform: time
+          at: '10:00:00'
+        - platform: time
+          at: '12:00:00'
+        - platform: time
+          at: '17:00:00'
+        - platform: time
+          at: '19:00:00'
+        - platform: time
+          at: '23:00:00'
+      condition:
+        condition: state
+        entity_id: group.trackdevice
+        state: 'not_home'
+      action:
+        - choose:
+          - conditions:
+            - condition: template
+              value_template: "{{ trigger.platform == 'time' }}"
+            - condition: time
+              after: '09:59:00'
+              before: '10:01:00'
+            sequence:
+              - delay: '{{ 00 ~ ":" ~ ((range(5, 35) | random) | int)  ~ ":" ~  ((range(5, 55) | random) | int) }}'
+              - service: homeassistant.turn_on
+                entity_id: group.room_s_light
+              - service: notify.telegram
+                data:
+                  title: "Имитация присутствия"
+                  message: "Свет в комнате включен в {{ states('sensor.time') }}"
+              - delay: '{{ 01 ~ ":" ~ ((range(5, 55) | random) | int)  ~ ":" ~  ((range(5, 55) | random) | int) }}'
+              - service: homeassistant.turn_off
+                entity_id: group.room_s_light
+              - service: notify.telegram
+                data:
+                  title: "Имитация присутствия"
+                  message: "Свет в комнате выключен в {{ states('sensor.time') }}"
+          - conditions:
+            - condition: template
+              value_template: "{{ trigger.platform == 'time' }}"
+            - condition: time
+              after: '11:59:00'
+              before: '12:01:00'
+            sequence:
+              - delay: '{{ 00 ~ ":" ~ ((range(5, 55) | random) | int)  ~ ":" ~  ((range(5, 55) | random) | int) }}'
+              - service: homeassistant.turn_on
+                entity_id: group.kitchen_s_light
+              - service: notify.telegram
+                data:
+                  title: "Имитация присутствия"
+                  message: "Свет на кухне включен в {{ states('sensor.time') }}"
+              - delay: '{{ 00 ~ ":" ~ 00  ~ ":" ~  ((range(5, 55) | random) | int) }}'
+              - service: media_player.turn_on
+                entity_id: media_player.samsungtvtizen
+              - delay: 5
+              - service: media_player.volume_set
+                data:
+                  entity_id: media_player.samsungtvtizen
+                  volume_level: 0.12
+              - service: notify.telegram
+                data:
+                  title: "Имитация присутствия"
+                  message: "Громкость телевизора установлена в {{ states('sensor.time') }}"
+              - delay: '{{ 01 ~ ":" ~ ((range(5, 55) | random) | int)  ~ ":" ~  ((range(5, 55) | random) | int) }}'
+              - service: media_player.turn_off
+                entity_id: media_player.samsungtvtizen
+              - delay: '{{ 00 ~ ":" ~ 00  ~ ":" ~  ((range(5, 55) | random) | int) }}'
+              - service: homeassistant.turn_off
+                entity_id: group.kitchen_s_light
+              - service: notify.telegram
+                data:
+                  title: "Имитация присутствия"
+                  message: "Свет на кухне выключен в {{ states('sensor.time') }}"
+          - conditions:
+            - condition: template
+              value_template: "{{ trigger.platform == 'time' }}"
+            - condition: time
+              after: '16:59:00'
+              before: '17:01:00'
+            sequence:
+              - delay: '{{ 00 ~ ":" ~ ((range(5, 55) | random) | int)  ~ ":" ~  ((range(5, 55) | random) | int) }}'
+              - service: homeassistant.turn_on
+                entity_id: group.room_s_light
+              - service: notify.telegram
+                data:
+                  title: "Имитация присутствия"
+                  message: "Свет в комнате включен в {{ states('sensor.time') }}"
+              - delay: '{{ ((range(0, 1) | random) | int) ~ ":" ~ ((range(5, 55) | random) | int)  ~ ":" ~  ((range(5, 55) | random) | int) }}'
+              - service: homeassistant.turn_off
+                entity_id: group.room_s_light
+              - service: notify.telegram
+                data:
+                  title: "Имитация присутствия"
+                  message: "Свет в комнате выключен в {{ states('sensor.time') }}"
+          - conditions:
+            - condition: template
+              value_template: "{{ trigger.platform == 'time' }}"
+            - condition: time
+              after: '18:59:00'
+              before: '19:01:00'
+            sequence:
+              - delay: '{{ 00 ~ ":" ~ ((range(5, 25) | random) | int)  ~ ":" ~  ((range(5, 55) | random) | int) }}'
+              - service: homeassistant.turn_on
+                entity_id: group.kitchen_s_light
+              - service: notify.telegram
+                data:
+                  title: "Имитация присутствия"
+                  message: "Свет на кухне включен в {{ states('sensor.time') }}"
+              - delay: '{{ 00 ~ ":" ~ 00  ~ ":" ~  ((range(5, 55) | random) | int) }}'
+              - service: media_player.turn_on
+                entity_id: media_player.samsungtvtizen
+              - delay: '{{ 01 ~ ":" ~ ((range(5, 55) | random) | int)  ~ ":" ~  ((range(5, 55) | random) | int) }}'
+              - service: media_player.turn_off
+                entity_id: media_player.samsungtvtizen
+              - delay: '{{ 00 ~ ":" ~ 00  ~ ":" ~  ((range(5, 55) | random) | int) }}'
+              - service: homeassistant.turn_off
+                entity_id: group.kitchen_s_light
+              - service: notify.telegram
+                data:
+                  title: "Имитация присутствия"
+                  message: "Свет на кухне выключен в {{ states('sensor.time') }}"
+              - delay: '{{ 00 ~ ":" ~ 00  ~ ":" ~  ((range(5, 30) | random) | int) }}'
+              - service: homeassistant.turn_on
+                entity_id: group.room_s_light
+              - service: notify.telegram
+                data:
+                  title: "Имитация присутствия"
+                  message: "Свет в комнате включен в {{ states('sensor.time') }}"
+              - wait_template: "{{ is_state('sensor.time', '22:00') }}"
+              - delay: '{{ ((range(0, 1) | random) | int) ~ ":" ~ ((range(5, 55) | random) | int)  ~ ":" ~  ((range(5, 55) | random) | int) }}'
+              - service: homeassistant.turn_off
+                entity_id: group.room_s_light
+              - service: notify.telegram
+                data:
+                  title: "Имитация присутствия"
+                  message: "Свет в комнате выключен в {{ states('sensor.time') }}"
+          - conditions:
+            - condition: template
+              value_template: "{{ trigger.platform == 'time' }}"
+            - condition: time
+              after: '22:59:00'
+              before: '23:01:00'
+            sequence:
+              - delay: '{{ 00 ~ ":" ~ ((range(5, 25) | random) | int)  ~ ":" ~  ((range(5, 55) | random) | int) }}'
+              - service: homeassistant.turn_off
+                entity_id: group.alllights
+              - service: media_player.turn_off
+                entity_id: media_player.samsungtvtizen
+              - service: notify.telegram
+                data:
+                  title: "Имитация присутствия"
+                  message: "Свет в квартире включен в {{ states('sensor.time') }}"
+              
+                  
