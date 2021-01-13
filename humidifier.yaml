@@ -1,0 +1,70 @@
+humidifier:
+
+  fan:
+    - platform: xiaomi_miio_airpurifier
+      host: 192.168.1.238
+      token: !secret smartmi_hum_token
+      name: Humidifier
+
+  sensor:
+    - platform: template
+      sensors:
+        humidifier_temperature:
+          friendly_name: Humidifier temperature
+          value_template: '{{ states.fan.humidifier.attributes.temperature }}'
+          unit_of_measurement: '°C'
+          icon_template: mdi:thermometer
+          
+        humidifier_humidity:
+          friendly_name: Humidifier humidity
+          value_template: '{{ states.fan.humidifier.attributes.humidity }}'
+          unit_of_measurement: '%'
+          icon_template: mdi:water-percent
+          
+        humidifier_water_level:
+          friendly_name: Humidifier water level
+          value_template: '{{ states.fan.humidifier.attributes.water_level }}'
+          unit_of_measurement: '%'
+          icon_template: mdi:waves
+          
+  switch:
+    - platform: template
+      switches:
+        xiaomi_humidifier_child_lock:
+          friendly_name: "Child lock"
+          value_template: "{{ is_state_attr('fan.humidifier', 'child_lock', True) }}"
+          turn_on:
+            service: xiaomi_miio_airpurifier.fan_set_child_lock_on
+            data:
+              entity_id: fan.humidifier
+          turn_off:
+            service: xiaomi_miio_airpurifier.fan_set_child_lock_off
+            data:
+              entity_id: fan.humidifier
+          icon_template: "mdi:lock-outline"
+          
+        xiaomi_humidifier_buzzer:
+          friendly_name: "Buzzer"
+          value_template: "{{ is_state_attr('fan.humidifier', 'buzzer', True) }}"
+          turn_on:
+            service: xiaomi_miio_airpurifier.fan_set_buzzer_on
+            data:
+              entity_id: fan.humidifier
+          turn_off:
+            service: xiaomi_miio_airpurifier.fan_set_buzzer_off
+            data:
+              entity_id: fan.humidifier
+          icon_template: "mdi:volume-off"
+          
+        xiaomi_humidifier_dry:
+          friendly_name: "Dry"
+          value_template: "{{ is_state_attr('fan.humidifier', 'dry', True) }}"
+          turn_on:
+            service: xiaomi_miio_airpurifier.fan_set_dry_on
+            data:
+              entity_id: fan.humidifier
+          turn_off:
+            service: xiaomi_miio_airpurifier.fan_set_dry_off
+            data:
+              entity_id: fan.humidifier
+          icon_template: "mdi:hair-dryer"
