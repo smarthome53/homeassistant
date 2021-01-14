@@ -1,0 +1,43 @@
+
+# Включение света по открытию входной двери
+- alias: Turn on light when I came home
+  initial_state: true
+  trigger:
+    - platform: state
+      entity_id: binary_sensor.0x00158d0004184c6c_contact
+      to: 'on'
+      from: 'off'
+  condition:
+    - condition: state
+      entity_id: switch.0x00158d0003433cdf_switch_left
+      state: 'off'
+    - condition: numeric_state
+      entity_id: sensor.0x04cf8cdf3c78ca45_illuminance_lux
+      below: 50
+    - condition: state
+      entity_id: binary_sensor.0x00158d0003f1ccc1_occupancy
+      state: 'off'
+  action:
+    - service: homeassistant.turn_on
+      entity_id: switch.0x00158d0003433cdf_switch_left
+    - service: homeassistant.turn_on
+      entity_id: automation.turn_off_hall_lights_by_occupancy
+
+      
+# Выключение света по датчику движения
+- alias: "Turn off hall lights by occupancy"
+  initial_state: false
+  trigger:
+    - platform: state
+      entity_id: binary_sensor.0x00158d0003f1ccc1_occupancy
+      to: 'off'
+  condition:
+    - condition: state
+      entity_id: switch.0x00158d0003433cdf_switch_left
+      state: 'on'
+  action:
+    - service: switch.turn_off
+      entity_id: switch.0x00158d0003433cdf_switch_left
+    - service: homeassistant.turn_off
+      entity_id: automation.turn_off_hall_lights_by_occupancy
+      
