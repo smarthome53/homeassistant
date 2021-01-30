@@ -1,0 +1,53 @@
+############################## Device Tracker ##################################
+
+# Автоматизации для создания device tracker на основе Binary_sensor
+- alias: device_tracker_bath_home
+  trigger:
+    - platform: state
+      entity_id: binary_sensor.mi_smart_band_4
+    - platform: homeassistant
+      event: start
+  action:
+    - choose:
+      - conditions:
+        - condition: template
+          value_template: "{{ trigger.platform == 'state' }}"
+        - condition: template
+          value_template: "{{ trigger.to_state.state == 'on' }}"
+        sequence:
+          - service: device_tracker.see
+            data:
+              dev_id: bath_mi_band_4
+              location_name: 'home'
+      - conditions:
+        - condition: template
+          value_template: "{{ trigger.platform == 'homeassistant' }}"
+        - condition: state
+          entity_id: binary_sensor.mi_smart_band_4
+          state: 'on'
+        sequence:
+          - service: device_tracker.see
+            data:
+              dev_id: bath_mi_band_4
+              location_name: 'home'
+      - conditions:
+        - condition: template
+          value_template: "{{ trigger.platform == 'state' }}"
+        - condition: template
+          value_template: "{{ trigger.to_state.state == 'off' }}"
+        sequence:
+          - service: device_tracker.see
+            data:
+              dev_id: bath_mi_band_4
+              location_name: 'not_home'
+      - conditions:
+        - condition: template
+          value_template: "{{ trigger.platform == 'homeassistant' }}"
+        - condition: state
+          entity_id: binary_sensor.mi_smart_band_4
+          state: 'off'
+        sequence:
+          - service: device_tracker.see
+            data:
+              dev_id: bath_mi_band_4
+              location_name: 'not_home'
