@@ -1,0 +1,186 @@
+substitutions:
+  pin_water_close: GPIO21
+  pin_water_open: GPIO19
+  pin_warning_detect: GPIO18
+  pin_water_counter: GPIO5
+  pin_dht: GPIO15
+  
+  relays_inverted: 'true'
+  
+  water_open_delay: 1000ms
+  water_close_delay: 1000ms
+  warning_detect_delay: 25s
+  
+esphome:
+  name: aquaguardian_esp32
+  platform: ESP32
+  board: esp32doit-devkit-v1
+
+wifi:
+  networks:
+    - ssid: !secret wifi_ssid_3
+      password: !secret wifi_password_3
+      priority: 10
+      hidden: true
+    - ssid: !secret wifi_ssid_2
+      password: !secret wifi_password_2
+      priority: 8
+      hidden: true
+    - ssid: !secret wifi_ssid
+      password: !secret wifi_password
+      hidden: false
+      priority: 5
+
+
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    ssid: "Aquaguardian Esp32"
+    password: "12345678"
+
+captive_portal:
+
+# Enable logging
+logger:
+
+# Enable Home Assistant API
+api:
+  password: "1234567890"
+  reboot_timeout: 0s
+  services:
+    - service: open_water
+      then:
+        - logger.log: "Call service Open water"
+        - script.execute: open_water
+    - service: close_water
+      then:
+        - logger.log: "Call service Close water"
+        - script.execute: close_water
+
+ota:
+  password: "1234567890"
+  
+script:
+  # Open Water
+  - id: open_water
+    then:
+      - logger.log: "Open Water"
+      - output.turn_on: relay_open_water
+      - delay: $water_open_delay
+      - output.turn_off: relay_open_water
+      
+  # Close Water
+  - id: close_water
+    then:
+      - logger.log: "Close Water"
+      - output.turn_on: relay_close_water
+      - delay: $water_close_delay
+      - output.turn_off: relay_close_water
+      
+output:
+
+  # Relay open water
+  - platform: gpio
+    id: relay_open_water
+    pin:
+      number: $pin_water_open
+      mode: OUTPUT
+      inverted: $relays_inverted
+      
+
+  # Relay open water
+  - platform: gpio
+    id: relay_close_water
+    pin:
+      number: $pin_water_close
+      mode: OUTPUT
+      inverted: $relays_inverted
+
+esp32_ble_tracker:
+
+binary_sensor:
+
+# BLE Presence
+  - platform: ble_presence
+    mac_address: 00:00:00:00:00:00
+    name: "Mi Smart Band 4"
+
+# Sensor water detect
+  - platform: gpio
+    name: Aquaguardian_esp32 warning
+    id: warning
+    device_class: moisture
+    pin:
+      number: $pin_warning_detect
+      mode: INPUT_PULLUP
+      inverted: True
+    filters:
+      delayed_off: $warning_detect_delay
+      
+# Sensor pulce detect for water count
+  - platform: gpio
+    name: water counter esp32
+    id: water
+    device_class: moisture
+    pin:
+      number: $pin_water_counter
+      mode: INPUT_PULLUP
+      inverted: $relays_inverted
+    
+# Status connection sensor
+  - platform: status
+    name: Aquaguardian_esp32 Status
+    
+sensor:
+# Uptime sensor
+  - platform: uptime
+    name: Aquaguardian_esp32 Uptime Sensor
+    id: uptime_s
+    update_interval: 30s
+# Wifi sensor
+  - platform: wifi_signal
+    name: "WiFi Signal Aquaguardian_esp32"
+    update_interval: 60s
+# Temp and hum sensor    
+  - platform: dht
+    pin: $pin_dht
+    temperature:
+      name: "Aquaguardian_esp32 Bathroom Temp"
+    humidity:
+      name: "Aquaguardian_esp32 Bathroom Hum"
+    model: DHT11  
+    update_interval: 30s
+
+switch:
+# Restart ESP
+  - platform: restart
+    name: "Aquaguardian_esp32 Restart"
+# Shutdown ESP
+  - platform: shutdown
+    name: "Aquaguardian_esp32 Shutdown"
+    
+text_sensor:
+# Uptime sensor in days, hours, min, sec
+  - platform: template
+    name: "Uptime Aquaguardian_esp32"
+    lambda: |-
+      uint32_t dur = id(uptime_s).state;
+      int dys = 0;
+      int hrs = 0;
+      int mnts = 0;
+      if (dur > 86399) {
+        dys = trunc(dur / 86400);
+        dur = dur - (dys * 86400);
+      }
+      if (dur > 3599) {
+        hrs = trunc(dur / 3600);
+        dur = dur - (hrs * 3600);
+      }
+      if (dur > 59) {
+        mnts = trunc(dur / 60);
+        dur = dur - (mnts * 60);
+      }
+      char buffer[17];
+      sprintf(buffer, "%ud %02uh %02um %02us", dys, hrs, mnts, dur);
+      return {buffer};
+    icon: mdi:clock
+    update_interval: 30s
