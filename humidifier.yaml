@@ -68,3 +68,216 @@ humidifier:
             data:
               entity_id: fan.humidifier
           icon_template: "mdi:hair-dryer"
+
+  automation:
+
+# Выключить увлажнитель
+    - alias: humidifier_turn_off
+      initial_state: true
+      trigger:
+        - platform: template # Влажность в комнате больше 60,влажность на кухне больше 50 
+          value_template: "{{ (states('sensor.0x00158d000408d1a1_humidity')|float > 60) and (states('sensor.gasboiler_kitchen_hum')|float > 50) }}"
+      action:      
+        - service: fan.turn_off
+          data:
+            entity_id: fan.humidifier
+
+# Включить увлажнитель на максимальную скорость если влажность в комнате меньше 45
+    - alias: humidifier_turn_on_below_45
+      initial_state: true
+      trigger:
+        - platform: numeric_state # Влажность в комнате меньше 45
+          entity_id: sensor.0x00158d000408d1a1_humidity
+          below: 45
+      action:
+       - choose:
+         - conditions: # Если влажность меньше 50 и больше 45 днем
+           - condition: or
+             conditions:
+             - condition: and # По будням с 7:00 до 22:30 
+               conditions:
+               - condition: state
+                 entity_id: binary_sensor.workday_sensor
+                 state: 'on'
+               - condition: time
+                 after: '07:00:00'
+                 before: '22:30:00'
+             - condition: and # По выходным с 9:00 до 22:30 
+               conditions:
+               - condition: state
+                 entity_id: binary_sensor.workday_sensor
+                 state: 'off'
+               - condition: time
+                 after: '09:00:00'
+                 before: '22:30:00'
+           sequence: # Включить на 3 режим обдува
+             - service: fan.turn_on
+               data:
+                 entity_id: fan.humidifier
+             - delay: '00:00:05'
+             - service: fan.set_speed
+               data:
+                 entity_id: fan.humidifier
+                 speed: High
+         - conditions: # Если влажность меньше 50 и больше 45 днем
+           - condition: or
+             conditions:
+             - condition: and # По будням с 7:00 до 22:30 
+               conditions:
+               - condition: state
+                 entity_id: binary_sensor.workday_sensor
+                 state: 'on'
+               - condition: time
+                 after: '22:30:00'
+                 before: '07:00:00'
+             - condition: and # По выходным с 9:00 до 22:30 
+               conditions:
+               - condition: state
+                 entity_id: binary_sensor.workday_sensor
+                 state: 'off'
+               - condition: time
+                 after: '22:30:00'
+                 before: '09:00:00'
+           sequence: # Включить на 1 режим обдува
+             - service: fan.turn_on
+               data:
+                 entity_id: fan.humidifier
+             - delay: '00:00:05'
+             - service: fan.set_speed
+               data:
+                 entity_id: fan.humidifier
+                 speed: Low
+
+# Включить увлажнитель на авто режиме, если влажность в комнате меньше 55 но больше 45
+    - alias: humidifier_turn_on_below_55_above_45
+      initial_state: true
+      trigger:
+        - platform: numeric_state # Влажность в комнате меньше 55 но больше 45 
+          entity_id: sensor.0x00158d000408d1a1_humidity
+          below: 55
+          above: 45
+      action:
+       - choose:
+         - conditions: # Если влажность меньше 50 и больше 45 днем
+           - condition: or
+             conditions:
+             - condition: and # По будням с 7:00 до 22:30 
+               conditions:
+               - condition: state
+                 entity_id: binary_sensor.workday_sensor
+                 state: 'on'
+               - condition: time
+                 after: '07:00:00'
+                 before: '22:30:00'
+             - condition: and # По выходным с 9:00 до 22:30 
+               conditions:
+               - condition: state
+                 entity_id: binary_sensor.workday_sensor
+                 state: 'off'
+               - condition: time
+                 after: '09:00:00'
+                 before: '22:30:00'
+           sequence: # Включить на авто режим обдува
+             - service: fan.turn_on
+               data:
+                 entity_id: fan.humidifier
+             - delay: '00:00:05'
+             - service: fan.set_speed
+               data:
+                 entity_id: fan.humidifier
+                 speed: Auto
+         - conditions: # Если влажность меньше 50 и больше 45 ночью
+           - condition: or
+             conditions:
+             - condition: and # По будням с 7:00 до 22:30 
+               conditions:
+               - condition: state
+                 entity_id: binary_sensor.workday_sensor
+                 state: 'on'
+               - condition: time
+                 after: '22:30:00'
+                 before: '07:00:00'
+             - condition: and # По выходным с 9:00 до 22:30 
+               conditions:
+               - condition: state
+                 entity_id: binary_sensor.workday_sensor
+                 state: 'off'
+               - condition: time
+                 after: '22:30:00'
+                 before: '09:00:00'
+           sequence: # Включить на 1 режим обдува
+             - service: fan.turn_on
+               data:
+                 entity_id: fan.humidifier
+             - delay: '00:00:05'
+             - service: fan.set_speed
+               data:
+                 entity_id: fan.humidifier
+                 speed: Low
+
+# Включить низкую скорость увлажнения если влажность в комнате больше 55
+    - alias: humidifier_turn_on_above_55
+      initial_state: true
+      trigger:
+        - platform: numeric_state # Влажность в комнате больше 55
+          entity_id: sensor.0x00158d000408d1a1_humidity
+          above: 55
+      action:
+        - service: fan.turn_on # Включить на 1 режим обдува
+          data:
+            entity_id: fan.humidifier
+        - delay: '00:00:05'
+        - service: fan.set_speed
+          data:
+            entity_id: fan.humidifier
+            speed: Low
+
+# Ночной режим увлажнителя
+    - alias: humidifier_night_mode
+      initial_state: true
+      trigger:
+        - platform: time
+          at: '22:30:00'
+        - platform: time
+          at: '07:00:00'
+        - platform: time
+          at: '09:00:00'
+      condition:
+        - condition: state
+          entity_id: fan.humidifier
+          state: 'on'
+      action:
+       - choose:
+         - conditions:  # В 22:30
+           - condition: time
+             after: '22:29:00'
+             before: '22:31:00'
+           sequence: # Включить на 1 скорость обдува
+            - service: fan.set_speed
+              data:
+                entity_id: fan.humidifier
+                speed: Low
+         - conditions:
+           - condition: or
+             conditions:
+             - condition: and # По будням в 7 утра
+               conditions:
+                 - condition: state
+                   entity_id: binary_sensor.workday_sensor
+                   state: 'on'
+                 - condition: time
+                   after: '06:59:00'
+                   before: '07:01:00'
+             - condition: and # По выходным с в 9 утра
+               conditions:
+                 - condition: state
+                   entity_id: binary_sensor.workday_sensor
+                   state: 'off'
+                 - condition: time
+                   after: '08:59:00'
+                   before: '09:01:00'
+           sequence: # Включить на авто скорость обдува
+            - service: fan.set_speed
+              data:
+                entity_id: fan.humidifier
+                speed: Auto
