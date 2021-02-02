@@ -281,3 +281,14 @@ humidifier:
               data:
                 entity_id: fan.humidifier
                 speed: Auto
+
+    - alias: humidifier_low_water_level_notify
+      initial_state: true
+      trigger:
+        - platform: template
+          value_template: "{{ state_attr('fan.humidifier','water_level')|float < 10 }}"
+      action:
+        - service: notify.telegram_loony
+          data:
+            title: "Добавьте воды в увлажнитель"
+            message: "Воды в увлажнителе осталось {{ state_attr('fan.humidifier','water_level')|int }}% в {{ states('sensor.time') }}"
