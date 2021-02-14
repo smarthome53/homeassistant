@@ -1,0 +1,228 @@
+  auto_start: true
+  filter:
+    include_domains:
+      - media_player
+#      - group
+      - climate
+      - person
+    include_entities:
+    # Switch
+        # Ванная
+      - switch.0x00124b001e7319e8_switch
+      - switch.0x00158d00033ad666_switch_left
+#      - switch.0x00158d00033ad666_switch_right отвязанная клавиша
+      - switch.water_faucet # Кран
+          # Розетки
+      - switch.0x00158d000405b1b4_switch
+      - switch.0x00158d00042d5caf_switch
+        # Коридор
+      - switch.0x00158d0003433cdf_switch_left
+#      - switch.0x00158d0003433cdf_switch_right отвязанная клавиша
+      - switch.0x00158d000315ffc8_switch # Розетка
+        # Кухня
+#      - switch.0x00158d000343cac2_switch_left отвязанная клавиша
+      - switch.0x00158d000343cac2_switch_right
+        # Комната
+      - switch.0x00158d0003433d20_switch_left
+#      - switch.0x00158d0003433d20_switch_right отвязанная клавиша
+      - switch.kompiuter # Компьютер
+           # Розетки
+      - switch.0x00158d0004177f59_switch
+      - switch.0x00158d000417eac3_switch
+      - switch.0x00158d0004056dab_switch
+      - switch.0x00158d0004037df5_switch
+        # Домофон
+      - switch.domofon_automatically_open
+      - switch.domofon_automatically_open_once
+      - switch.domofon_automatically_reject
+        # Wifi
+      - switch.wifi_donet
+    # Light
+        # Ванная
+#      - light.xiaomi_tsvetnaia
+      - light.0x00124b00210f5950_light
+        # Коридор
+      - light.gateway_light_04cf8ca165f5
+        # Кухня
+      - light.0x00124b001fbe95fc_light 
+        # Комната
+      - light.room_s_bra_light
+      - light.rooms_s_bra_down_light
+      - light.rooms_s_bra_right_left
+      - light.rooms_s_bra_right_light
+      - light.rooms_s_bra_up_light
+      
+    # Vacuum
+      - vacuum.xiaomi_mop_p
+      - script.vacuum_room_zone
+      - script.vacuum_kitchen_hall_bath_zone
+      - script.vacuum_bath_zone
+      - script.vacuum_hall_zone
+      - script.vacuum_kitchen_zone
+      
+    # Sensor
+        # Mesurement
+      - sensor.gasboiler_kitchen_hum
+      - sensor.gasboiler_kitchen_temp
+      - sensor.0x00158d000408d100_humidity
+      - sensor.0x00158d000408d100_temperature
+      - sensor.0x00158d000408d1a1_humidity
+      - sensor.0x00158d000408d1a1_temperature
+#      - sensor.0x04cf8cdf3c78ca45_illuminance
+      - sensor.0x04cf8cdf3c78ca45_illuminance_lux
+      - sensor.humidity_mean
+      - sensor.temperature_mean
+
+      - binary_sensor.0x00158d0004184c6c_contact
+      - binary_sensor.0x00158d000395c417_contact
+      - binary_sensor.0x00158d000395abc1_contact
+      - binary_sensor.0x00158d0003969a7d_contact
+      - binary_sensor.0x00158d0003980bc7_contact
+      - binary_sensor.0x00158d0003f1ccc1_occupancy
+      - binary_sensor.0x00158d0003f1cda7_occupancy
+      - binary_sensor.bt_human_detect
+
+
+        # Скрипт
+      - script.domofon_open
+      - script.domofon_reject
+      - script.romantic_with_music
+      - script.yandex_goodnight
+   
+    # Fan
+      - fan.humidifier
+    
+    exclude_entities:
+      - climate.thermostat_bath
+      - climate.thermostat_hall
+      - climate.gasboiler_esphome
+      - climate.gasboiler_ha
+      - media_player.yandex_station_17565441829576984385
+      - media_player.yandex_intents
+  
+  entity_config:
+    switch.0x00124b001e7319e8_switch:
+      name: Зеркало
+    switch.0x00158d00033ad666_switch_left:
+      name: Вентилятор
+    switch.water_faucet: 
+      name: Кран
+      type: faucet
+    switch.0x00158d000405b1b4_switch:
+      name: Розетка 1
+      type: outlet
+    switch.0x00158d00042d5caf_switch:
+      name: Розетка 2
+      type: outlet
+    switch.0x00158d0003433cdf_switch_left:
+      name: Светильники
+    switch.0x00158d000315ffc8_switch:
+      name: Розетка
+      type: outlet
+    switch.0x00158d000343cac2_switch_right:
+      name: Люстра
+    switch.0x00158d0003433d20_switch_left:
+      name: Люстра
+    switch.kompiuter:
+      name: Компьютер
+    switch.0x00158d0004177f59_switch:
+      name: Розетка 1
+      type: outlet
+    switch.0x00158d000417eac3_switch:
+      name: Розетка 2
+      type: outlet
+    switch.0x00158d0004056dab_switch:
+      name: Розетка 3
+      type: outlet
+    switch.0x00158d0004037df5_switch:
+      name: Фумигатор
+      type: outlet
+    switch.domofon_automatically_open:
+      name: Домофон автооткрытие
+    switch.domofon_automatically_open_once:
+      name: Домофон 1 открытие
+    switch.domofon_automatically_reject:
+      name: Домофон отбой
+    switch.wifi_donet:
+      name: Вайфай
+    light.0x00124b00210f5950_light:
+      name: Лампочка
+    light.gateway_light_04cf8ca165f5:
+      name: Ночник
+    light.0x00124b001fbe95fc_light:
+      name: Подсветка
+    light.room_s_bra_light:
+      name: Бра
+    light.rooms_s_bra_down_light:
+      name: Нижнии бра
+    light.rooms_s_bra_right_left:
+      name: Левые бра
+    light.rooms_s_bra_right_light:
+      name: Правые бра
+    light.rooms_s_bra_up_light:
+      name: Верхнии бра
+    vacuum.xiaomi_mop_p:
+      name: Пылесос
+    script.vacuum_room_zone:
+      name: Уборка комнаты
+    script.vacuum_kitchen_hall_bath_zone:
+      name: Уборка кухни
+    script.vacuum_bath_zone:
+      name: Уборка только ванной
+    script.vacuum_hall_zone:
+      name: Уборка только коридора
+    script.vacuum_kitchen_zone:
+      name: Уборка только кухни
+    sensor.gasboiler_kitchen_hum:
+      name: Влажность Кухня
+    sensor.gasboiler_kitchen_temp:
+      name: Температура Кухня
+    sensor.0x00158d000408d100_humidity:
+      name: Влажность Ванная
+      linked_battery_sensor: sensor.0x00158d000408d100_battery
+    sensor.0x00158d000408d100_temperature:
+      name: Температура Ванная
+      linked_battery_sensor: sensor.0x00158d000408d100_battery
+    sensor.0x00158d000408d1a1_humidity:
+      name: Влажность Комната
+      linked_battery_sensor: sensor.0x00158d000408d1a1_battery
+    sensor.0x00158d000408d1a1_temperature:
+      name: Температура Комната
+      linked_battery_sensor: sensor.0x00158d000408d1a1_battery
+    sensor.0x04cf8cdf3c78ca45_illuminance_lux:
+      name: Освещенность Коридор
+      linked_battery_sensor: sensor.0x04cf8cdf3c78ca45_battery
+    sensor.humidity_mean:
+      name: Влажность средняя
+    sensor.temperature_mean:
+      name: Температура средняя
+    binary_sensor.0x00158d0004184c6c_contact:
+      name: Входная дверь
+      linked_battery_sensor: sensor.0x00158d0004184c6c_battery
+    binary_sensor.0x00158d000395c417_contact:
+      name: Ванная дверь
+      linked_battery_sensor: sensor.0x00158d000395c417_battery
+    binary_sensor.0x00158d000395abc1_contact:
+      name: Комната дверь
+      linked_battery_sensor: sensor.0x00158d000395abc1_battery
+    binary_sensor.0x00158d0003969a7d_contact:
+      name: Комната окно
+      linked_battery_sensor: sensor.0x00158d0003969a7d_battery
+    binary_sensor.0x00158d0003980bc7_contact:
+      name: Кухня окно
+      linked_battery_sensor: sensor.0x00158d0003980bc7_battery
+    binary_sensor.0x00158d0003f1ccc1_occupancy:
+      name: Коридор движение
+      linked_battery_sensor: sensor.0x00158d0003f1ccc1_battery
+    binary_sensor.0x00158d0003f1cda7_occupancy:
+      name: Ванная движение
+      linked_battery_sensor: sensor.0x00158d0003f1cda7_battery
+    binary_sensor.bt_human_detect:
+      name: Ванная присутствие
+    media_player.samsungtvtizen:
+      name: Телевизор
+      feature_list:
+        - feature: on_off
+        - feature: play_pause
+        - feature: play_stop
+        - feature: toggle_mute
