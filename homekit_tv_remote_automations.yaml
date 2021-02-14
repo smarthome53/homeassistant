@@ -1,0 +1,98 @@
+- alias: homekit_arrow_right
+  trigger:
+    platform: event
+    event_type: homekit_tv_remote_key_pressed
+    event_data:
+      entity_id: media_player.samsungtvtizen
+      key_name: arrow_right
+  action:
+    - service: media_player.play_media
+      data:
+        entity_id: media_player.samsungtvtizen
+        media_content_id: KEY_RIGHT
+        media_content_type: "send_key"
+    
+- alias: homekit_arrow_left
+  trigger:
+    platform: event
+    event_type: homekit_tv_remote_key_pressed
+    event_data:
+      entity_id: media_player.samsungtvtizen
+      key_name: arrow_left
+  action:
+    - service: media_player.play_media
+      data:
+        entity_id: media_player.samsungtvtizen
+        media_content_id: KEY_LEFT
+        media_content_type: "send_key"
+        
+- alias: homekit_arrow_up
+  trigger:
+    platform: event
+    event_type: homekit_tv_remote_key_pressed
+    event_data:
+      entity_id: media_player.samsungtvtizen
+      key_name: arrow_up
+  action:
+    - service: media_player.play_media
+      data:
+        entity_id: media_player.samsungtvtizen
+        media_content_id: KEY_UP
+        media_content_type: "send_key"
+        
+- alias: homekit_arrow_down
+  trigger:
+    platform: event
+    event_type: homekit_tv_remote_key_pressed
+    event_data:
+      entity_id: media_player.samsungtvtizen
+      key_name: arrow_down
+  action:
+    - service: media_player.play_media
+      data:
+        entity_id: media_player.samsungtvtizen
+        media_content_id: KEY_DOWN
+        media_content_type: "send_key"
+        
+- alias: homekit_arrow_select
+  trigger:
+    platform: event
+    event_type: homekit_tv_remote_key_pressed
+    event_data:
+      entity_id: media_player.samsungtvtizen
+      key_name: select
+  action:
+    - service: media_player.play_media
+      data:
+        entity_id: media_player.samsungtvtizen
+        media_content_id: KEY_ENTER
+        media_content_type: "send_key"
+        
+- alias: homekit_arrow_back
+  trigger:
+    platform: event
+    event_type: homekit_tv_remote_key_pressed
+    event_data:
+      entity_id: media_player.samsungtvtizen
+      key_name: back
+  action:
+    - service: media_player.play_media
+      data:
+        entity_id: media_player.samsungtvtizen
+        media_content_id: KEY_RETURN
+        media_content_type: "send_key"
+        
+- alias: homekit_arrow_information
+  trigger:
+    platform: event
+    event_type: homekit_tv_remote_key_pressed
+    event_data:
+      entity_id: media_player.samsungtvtizen
+      key_name: information
+  action:
+    - service: media_player.play_media
+      data:
+        entity_id: media_player.samsungtvtizen
+        media_content_id: KEY_CH_LIST
+        media_content_type: "send_key"
+        
