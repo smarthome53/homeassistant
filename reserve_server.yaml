@@ -1,0 +1,269 @@
+# Настройки для резервирования сервера HA
+reserve_server:
+
+  group:
+    all_automations:
+      name: Автоматизации
+      all: false
+      entities:
+        - automation.aquaguardian_nedostupen
+        - automation.battery_sensor_0x00158d000395abc1_notify
+        - automation.battery_sensor_0x00158d000395c417_notify
+        - automation.battery_sensor_0x00158d0003969a7d_notify
+        - automation.battery_sensor_0x00158d0003980bc7_notify
+        - automation.battery_sensor_0x00158d0003f1ccc1_notify
+        - automation.battery_sensor_0x00158d0003f1cda7_notify
+        - automation.battery_sensor_door_1_notify
+        - automation.battery_sensor_hall_lux_notify
+        - automation.battery_sensor_kitchen_xiaomi_button_notify
+        - automation.battery_sensor_room_xiaomi_button_notify
+        - automation.battery_sensor_switch_1_notify
+        - automation.battery_sensor_switch_2_notify
+        - automation.battery_sensor_temp1_notify
+        - automation.battery_sensor_temp2_notify
+        - automation.brightness_down_lights_in_bedroom_by_xiaomi_wireless
+#        - automation.count_filter_life
+#        - automation.count_fumigator_life
+        - automation.detect_motion_in_bathroom
+        - automation.domofon_end_of_call_notification
+        - automation.domofon_incoming_call_notification
+        - automation.domofon_nedostupen
+        - automation.domofon_opened_by_button_notification
+        - automation.domofon_opened_by_script_notification
+        - automation.domofon_reject_by_script_notification
+        - automation.door_close_notify
+        - automation.door_opens_notify
+        - automation.dvernoi_zvonok
+        - automation.fumigator_off_weekend
+        - automation.fumigator_off_workday
+        - automation.fumigator_on
+#        -  automation.gas_count
+        - automation.gasboiler_nedostupen
+        - automation.gateway_nedostupen
+        - automation.gateway_telegram_hassio_reboot_callback
+#        - automation.gerkon_na_gazovom_schetcheke
+        - automation.hall_motion_detect
+#        - automation.hass_startup_notification
+#        - automation.hassio_update_check_notify
+#        - automation.home_assistant_stop_notify
+        -  automation.homekit_delayed_start
+        - automation.kettle_nedostupen_notify
+        - automation.kettle_nedostupen_reboot
+#        - automation.login_failure_notify
+        - automation.mikrotik_nedostuna_integratsiia
+        - automation.mikrotik_update_check_notify
+        - automation.netgear_nedostupen
+        - automation.nrgcounter_nedostupen
+        - automation.night_lights_off
+        - automation.night_lights_on
+        - automation.night_mode_heat
+        - automation.lunch_and_dinner_heat_mode
+#        - automation.turn_on_light_when_not_home
+        - automation.not_work_time
+        - automation.notify_filter_life_end
+        - automation.notify_filter_life_end_7_days
+        - automation.notify_fumigator_life_end
+        - automation.notify_fumigator_life_end_7_night
+        - automation.notify_turn_off_heat_by_time
+        - automation.notify_turn_off_heat_when_nobody_at_home
+        - automation.notify_turn_off_lights_and_tvs_when_nobody_at_home
+        - automation.nrgt1_day_start
+        - automation.nrgt1_month_start
+        - automation.nrgt1_year_start
+        - automation.nrgt2_day_start
+        - automation.nrgt2_month_start
+        - automation.nrgt2_year_start
+        - automation.pc_off_notify
+        - automation.pc_on_notify
+        - automation.protechka
+        - automation.r4s_gateway_nedostupen
+        - automation.r4s_gateway_telegram_r4s_gateway_reboot_callback
+#        - automation.raspberry_nedostupen
+        - automation.restart_heating_bath_floor_thermostat
+        - automation.restart_heating_hall_floor_thermostat
+        - automation.restart_socat
+        - automation.run_alarm
+        - automation.set_away_temperature_after_reboot
+        - automation.set_input_boolean
+        - automation.socat_disable_notify
+        - automation.start_heating_bath_floor_in_night
+        - automation.stop_heating_bath_floor_in_night
+        - automation.start_timer_by_door
+        - automation.telegram_domofon_open_callback
+        - automation.telegram_domofon_reject_callback
+        - automation.thermostat_bath_nedostupen
+        - automation.thermostat_hall_nedostupen
+        - automation.time_to_wash_the_car
+        - automation.timer_hall_lights_cancel
+        - automation.toggle_fan_by_aqara_wireless_switch
+        - automation.toggle_lights_by_aqara_wireless_switch
+        - automation.turn_off_all_lights_in_bedroom_by_xiaomi_wireless
+        - automation.turn_off_bt_lights_by_timer
+        - automation.turn_off_fan_and_cancel_timer
+        - automation.turn_off_fan_by_humidity
+        - automation.turn_off_fan_by_timer
+#        - automation.turn_off_hall_lights_by_occupancy
+        - automation.turn_off_hall_lights_by_timer
+        - automation.turn_off_kitchen_led_by_aqara_switch
+        - automation.turn_off_light_by_occupancy
+        - automation.turn_off_lights_and_tvs_when_nobody_at_home
+        - automation.turn_off_lights_by_door
+        - automation.turn_off_lights_in_bathroom_by_aqara_wall
+        - automation.turn_off_lights_in_bedroom_by_aqara_wall
+        - automation.turn_off_lights_when_leaving_home_aqara_wall_switch
+        - automation.turn_off_teeth_brush_charge
+        - automation.turn_on_all_lights_in_bedroom_by_xiaomi_wireless
+        - automation.turn_on_all_up_lights_in_bedroom_by_xiaomi_wireless
+        - automation.turn_on_aqara_relay_bra
+        - automation.turn_on_aqara_relay_led_light
+        - automation.turn_on_aqara_relay_mirror
+        - automation.turn_on_bt_light_by_door
+        - automation.turn_on_fan_and_timer
+        - automation.turn_on_fan_by_humidity
+        - automation.turn_on_heat_away_mode
+        - automation.turn_on_heat_none_mode
+        - automation.turn_on_kitchen_led_by_aqara_switch
+        - automation.turn_on_left_up_lights_in_bedroom_by_xiaomi_wireless
+        - automation.turn_on_light_by_occupancy
+        - automation.turn_on_light_when_i_came_home
+        - automation.turn_on_lights_in_bathroom_day
+        - automation.turn_on_lights_in_bathroom_night
+        - automation.turn_on_lights_in_bedroom_day
+        - automation.turn_on_lights_in_bedroom_night
+        - automation.turn_on_right_up_lights_in_bedroom_by_xiaomi_wireless
+        - automation.turn_on_teeth_brush_charge
+        - automation.turn_on_teeth_brush_charge_by_aqara_button
+        - automation.turn_on_tv_on_lunch
+        - automation.tv_off_notify
+        - automation.tv_on_notify
+        - automation.uvedomlenie_dvernoi_zvonok
+        - automation.vacuum_end_sweep_notify
+        - automation.vacuum_error_notify
+        - automation.vacuum_idle_notify
+        - automation.vacuum_kitchen_hall_bath_sweep
+        - automation.vacuum_paused_notify
+        - automation.vacuum_room_sweep
+        - automation.volume_after_paused
+        - automation.volume_after_playing
+        - automation.volume_at_talk
+        - automation.volume_down_at_day
+        - automation.volume_down_at_night
+#        - automation.water_count
+        - automation.windows_close_notify
+        - automation.windows_open_notify
+        - automation.work_time
+        - automation.yandex_telegram_answer
+        - automation.yandex_telegram_listen
+#        - automation.zigbee2mqtt_log_level
+#        - automation.zigbee_device_joined_notification
+#        - automation.zigbee_join_disabled
+#        - automation.zigbee_join_enabled
+        - automation.torrent_compleated
+        - automation.humidifier_turn_on_below_55_above_45
+        - automation.humidifier_turn_on_below_45
+        - automation.humidifier_turn_on_above_55
+        - automation.humidifier_turn_off
+        - automation.humidifier_night_mode
+        - automation.humidifier_low_water_level_notify
+        
+  sensor:
+      
+    - platform: rest
+      resource: http://192.168.1.9:8123/api/states/sensor.online_custom
+      name: HA Prodaction online
+      force_update: true
+      headers:
+        authorization: !secret haprodtoken
+      value_template: '{{ value_json.state }}'
+       
+
+  binary_sensor:
+  
+    - platform: rest
+      resource: http://192.168.1.9:8123/api/states/binary_sensor.debian_netbook
+      name: debian_netbook_prod
+      force_update: true
+      headers:
+        authorization: !secret haprodtoken
+      value_template: '{{ value_json.state }}'
+      device_class: connectivity
+      
+    - platform: rest
+      resource: http://192.168.1.9:8123/api/states/group.all_automations
+      name: automations_prod
+      force_update: true
+      headers:
+        authorization: !secret haprodtoken
+      value_template: '{{ value_json.state }}'
+      
+
+  automation:
+  
+    - alias: ha_prod_offline
+      initial_state: true
+      trigger:
+        - platform: state
+          entity_id: binary_sensor.debian_netbook_prod
+          to: 'unavailable'
+        - platform: state
+          entity_id: binary_sensor.debian_netbook_prod
+          from: 'on'
+          to: 'off'
+      action:
+       - choose:
+         - conditions:
+           - condition: state
+             entity_id: group.all_automations
+             state: 'off'
+           sequence:
+             - service: notify.telegram_1
+               data:
+                 title: "Develop Server"
+                 message: "Потеря связи с основным сервером raspberry pi в {{ states('sensor.time') }}. Включение сценариев."
+             - service: homeassistant.turn_on
+               entity_id: group.all_automations
+         - conditions:
+           - condition: state
+             entity_id: group.all_automations
+             state: 'on'
+           sequence:
+             - service: notify.telegram_1
+               data:
+                 title: "Develop Server"
+                 message: "Потеря связи с основным сервером raspberry pi в {{ states('sensor.time') }}. Сценарии активны."
+                 
+  
+    - alias: ha_prod_online
+      initial_state: true
+      trigger:
+        - platform: state
+          entity_id: binary_sensor.debian_netbook_prod
+          from: 'unavailable'
+          to: 'on'
+        - platform: state
+          entity_id: binary_sensor.debian_netbook_prod
+          from: 'off'
+          to: 'on'
+      action:
+         - service: notify.telegram_1
+           data:
+             title: "Develop Server"
+             message: "Связь с основным сервером raspberry pi востановлена в {{ states('sensor.time') }}."
+             data:
+               inline_keyboard:
+                 - "{{ '0' if is_state('group.all_automations', 'off') else 'Выключить автоматизации:/automations_dev_off' }}"
+
+    - alias: Telegram /automations_dev_off callback
+      initial_state: true
+      trigger:
+        platform: event
+        event_type: telegram_callback
+        event_data:
+          data: '/automations_dev_off'
+      action:
+        - service: telegram_bot.answer_callback_query
+          data_template:
+            callback_query_id: "{{ trigger.event.data.id }}"
+            message: "{{ 'Выключаю...' if is_state('group.all_automations', 'on') else 'Автоматизации уже выключены' }}"
+        - service: homeassistant.turn_off
+          entity_id: group.all_automations
