@@ -1,0 +1,180 @@
+# Снятие показаний со счетчика воды
+water_counter:
+  
+  counter:
+  #Счетчик холодной воды
+    water_counter:
+      initial: 27330
+      step: 10
+      
+################################################################################
+      
+  automation:
+    #Автоматизация увеличения счетчика воды по показанию импульсов
+    - alias: Water count
+      trigger:
+      - entity_id: binary_sensor.water_counter_esp32
+        platform: state
+        from: 'on'
+        to: 'off'
+      action:
+        - data:
+            entity_id:
+            - counter.water_counter
+          service: counter.increment
+          
+# Синхронизация счетчиков с инпут намберами для их калибровки
+    - alias: water_count_input_sync
+      trigger:
+        platform: state
+        entity_id: sensor.water_counter_sensor
+      action:
+        - service: input_number.set_value
+          data:
+            entity_id: input_number.water_counter_sensor
+            value: "{{ states('sensor.water_counter_sensor')|float }}"
+          
+    - alias: water_daily_single_input_sync
+      trigger:
+        platform: state
+        entity_id: sensor.water_daily_single
+      action:
+        - service: input_number.set_value
+          data:
+            entity_id: input_number.water_daily_single
+            value: "{{ states('sensor.water_daily_single')|float }}"
+          
+    - alias: water_monthly_single_input_sync
+      trigger:
+        platform: state
+        entity_id: sensor.gas_monthly_single
+      action:
+        - service: input_number.set_value
+          data:
+            entity_id: input_number.water_monthly_single
+            value: "{{ states('sensor.water_monthly_single')|float }}"
+          
+    - alias: water_yearly_single_input_sync
+      trigger:
+        platform: state
+        entity_id: sensor.water_yearly_single
+      action:
+        - service: input_number.set_value
+          data:
+            entity_id: input_number.water_yearly_single
+            value: "{{ states('sensor.water_yearly_single')|float }}"
+          
+################################################################################
+          
+  utility_meter:
+  # Потребление воды, на оснований счетчика
+    water_yearly: # Годовое потребление сырой воды
+      source: sensor.water_counter_sensor
+      cycle: yearly
+      tariffs:
+        - single  
+  
+    water_monthly: # Месячное потребление сырой воды
+      source: sensor.water_counter_sensor
+      cycle: monthly
+      tariffs:
+        - single  
+ 
+    water_daily: # Дневное потребление сырой воды
+      source: sensor.water_counter_sensor
+      cycle: daily
+      tariffs:
+        - single  
+        
+################################################################################
+          
+  sensor:
+# Перевод литры в кубы
+    - platform: template
+      sensors:
+        water_counter_sensor:
+          friendly_name: "Показания счетчика воды"
+          unit_of_measurement: 'M3'
+          value_template: "{{ (states('counter.water_counter')| float)/1000 }}"
+          icon_template: mdi:water
+
+# Счетчик в литрах
+    - platform: template
+      sensors:
+        water_counter_sensor_l:
+          friendly_name: "Показания счетчика воды в литрах"
+          unit_of_measurement: 'л'
+          value_template: "{{ (states('counter.water_counter')| float) }}"
+          icon_template: mdi:water
+      
+# Расход воды за вчерашний день
+    - platform: template
+      sensors:
+        water_yesterday: # Расход воды (вчера)
+          friendly_name: Расход воды (вчера)
+          icon_template: mdi:calendar-arrow-left
+          unit_of_measurement: 'л'
+          value_template: "{{ (state_attr('sensor.water_daily_single', 'last_period') | float)*1000 }}"     
+ 
+# Расход воды за сегодня
+    - platform: template
+      sensors:
+        water_today: # Расход воды (сегодня)
+          friendly_name: Расход воды (сегодня)
+          icon_template: mdi:calendar-today
+          unit_of_measurement: 'л'
+          value_template: "{{ (states('sensor.water_daily_single') | float)*1000 }}"  
+          
+# Инпут намбер для кабибровки счетчика
+  input_number:
+    water_counter_sensor:
+      min: 0
+      max: 99999
+      mode: box
+      step: 0.01
+    water_daily_single:
+      min: 0
+      max: 100
+      mode: box
+      step: 0.01
+    water_monthly_single:
+      min: 0
+      max: 99999
+      mode: box
+      step: 0.01
+    water_yearly_single:
+      min: 0
+      max: 99999
+      mode: box
+      step: 0.01
+
+# Скрипт для калибровки счетчика    
+  script:
+    calibration_water:
+      alias: calibration water counter
+      sequence:
+        - service: counter.configure
+          data:
+            entity_id: counter.water_counter
+            value: "{{ states('input_number.water_counter_sensor')|float * 1000 }}"
+    calibration_water_dayily:
+      alias: calibration water daily
+      sequence:
+        - service: utility_meter.calibrate
+          data:
+            entity_id: sensor.water_daily_single
+            value: "{{ states('input_number.water_daily_single')|float }}"
+    calibration_water_monthly:
+      alias: calibration water mounthly
+      sequence:
+        - service: utility_meter.calibrate
+          data:
+            entity_id: sensor.water_monthly_single
+            value: "{{ states('input_number.water_monthly_single')|float }}"
+    calibration_water_yearly:
+      alias: calibration water yearly
+      sequence:
+        - service: utility_meter.calibrate
+          data:
+            entity_id: sensor.water_yearly_single
+            value: "{{ states('input_number.water_yearly_single')|float }}"
