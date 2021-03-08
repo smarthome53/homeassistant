@@ -1,0 +1,387 @@
+nrgcounter:
+  
+# Команда для мапинга telnet to com
+  shell_command:
+    restart_socat: "ssh -i /config/ssh/id_rsa -o StrictHostKeyChecking=no -q pi@192.168.1.9 sudo socat  pty,link=/dev/nrg,raw  tcp:192.168.1.16:23 &"
+   
+############################ Автоматизации #####################################
+# Мапить порт при запуске HA 
+  automation:
+
+# Мапить порт, если отсутствует связь со счетчиком
+#    - alias: restart_socat
+#      trigger:
+#        - platform: state
+#          entity_id:
+#            - sensor.nrgt1
+#            - sensor.nrgt2
+#            - sensor.nrgvolt
+#            - sensor.nrgpower
+#          to: "0.0"
+#          for: "00:02:00"
+#        - platform: numeric_state
+#          entity_id: sensor.online
+#          above: 3
+#        - platform: time_pattern
+#          minutes: "/30"
+#        - platform: time
+#          at: "23:55:00"
+#      condition:
+#        condition: and
+#        conditions:
+#          - condition: state
+#            entity_id: sensor.nrgt1
+#            state: "0.0"
+#          - condition: state
+#            entity_id: sensor.nrgt2
+#            state: "0.0"
+#          - condition: state
+#            entity_id: sensor.nrgvolt
+#            state: "0.0"
+#          - condition: state
+#            entity_id: sensor.nrgpower
+#            state: "0.0"
+#      action:
+#        - service: shell_command.restart_socat
+        
+# Уведомление если сокат недоступен больше 5 минут
+#    - alias: socat disable notify
+#      trigger:
+#        - platform: state
+#          entity_id:
+#            - sensor.nrgt1
+#            - sensor.nrgt2
+#            - sensor.nrgvolt
+#            - sensor.nrgpower
+#          to: "0.0"
+#          for: "00:05:00"
+#      condition:
+#        condition: and
+#        conditions:
+#          - condition: state
+#            entity_id: sensor.nrgt1
+#            state: "0.0"
+#          - condition: state
+#            entity_id: sensor.nrgt2
+#            state: "0.0"
+#          - condition: state
+#            entity_id: sensor.nrgvolt
+#            state: "0.0"
+#          - condition: state
+#            entity_id: sensor.nrgpower
+#            state: "0.0"
+#      action:
+#        - service: notify.telegram_loony
+#          data_template:
+#            title: 'Энергопотребление'
+#            message: "Информация со счетчика не приходит в {{ states('sensor.time') }}"
+
+# Запись в топик значения на начало дня по первому тарифу
+    - alias: nrgt1_day_start
+      initial_state: true
+      trigger:
+        - platform: time
+          at: 00:00:05
+      action:
+        - service: mqtt.publish
+          data_template:
+            topic: "power/t1/yesterdaystart"
+            payload: '{{(states.sensor.t1daystart.state)}}'
+            retain: true
+        - delay: 00:00:05
+        - service: mqtt.publish
+          data_template:
+            topic: "power/t1/daystart"
+            payload: '{{(states.sensor.nrgt1.state)}}'
+            retain: true
+
+# Запись в топик значения на начало дня по второму тарифу
+    - alias: nrgt2_day_start
+      initial_state: true
+      trigger:
+        - platform: time
+          at: 00:00:05
+      action:
+        - service: mqtt.publish
+          data_template:
+            topic: "power/t2/yesterdaystart"
+            payload: '{{(states.sensor.t2daystart.state)}}'
+            retain: true
+        - delay: 00:00:05
+        - service: mqtt.publish
+          data_template:
+            topic: "power/t2/daystart"
+            payload: '{{(states.sensor.nrgt2.state)}}'
+            retain: true
+            
+# Запись в топик значения на начало месяца по первому тарифу
+    - alias: nrgt1_month_start
+      initial_state: true
+      trigger:
+        - platform: time
+          at: 00:00:05
+      condition:
+        - condition: template
+          value_template: "{{ now().day == 1 }}"
+      action:
+        - service: mqtt.publish
+          data_template:
+            topic: "power/t1/monthstart"
+            payload: '{{(states.sensor.nrgt1.state)}}'
+            retain: true
+            
+# Запись в топик значения на начало месяца по второму тарифу
+    - alias: nrgt2_month_start
+      initial_state: true
+      trigger:
+        - platform: time
+          at: 00:00:05
+      condition:
+        - condition: template
+          value_template: "{{ now().day == 1 }}"
+      action:
+        - service: mqtt.publish
+          data_template:
+            topic: "power/t2/monthstart"
+            payload: '{{(states.sensor.nrgt2.state)}}'
+            retain: true
+            
+# Запись в топик значения на начало года по первому тарифу
+    - alias: nrgt1_year_start
+      initial_state: true
+      trigger:
+        - platform: time
+          at: 00:00:05
+      condition:
+        - condition: template
+          value_template: "{{ now().timetuple().tm_yday == 1 }}"
+      action:
+        - service: mqtt.publish
+          data_template:
+            topic: "power/t1/yearstart"
+            payload: '{{(states.sensor.nrgt1.state)}}'
+            retain: true
+            
+# Запись в топик значения на начало года по второму тарифу
+    - alias: nrgt2_year_start
+      initial_state: true
+      trigger:
+        - platform: time
+          at: 00:00:05
+      condition:
+        - condition: template
+          value_template: "{{ now().timetuple().tm_yday == 1 }}"
+      action:
+        - service: mqtt.publish
+          data_template:
+            topic: "power/t2/yearstart"
+            payload: '{{(states.sensor.nrgt2.state)}}'
+            retain: true
+
+
+############################### Sensors ######################################## 
+  sensor:
+
+###################### Получение информации от счетчика ########################
+
+# Сенсор потребления энергии по 1 тарифу
+#    - platform: ssh
+#      host: !secret sshhost
+#      name: 'nrgt1'
+#      username: !secret sshppilogin
+#      password: !secret sshpipass
+#      command: "sudo sh /mnt/usbhdd/nrgcounter/electo_counters/electro_counter.sh kwatthour:T1"
+#      unit_of_measurement: 'kW'
+#      value_template: >-
+#        {{ value | replace ("<ter/electo_counters/electro_counter.sh kwatthour:T1", "") | float }}
+    
+# Сенсор потребления энергии по 2 тарифу
+#    - platform: ssh
+#      host: !secret sshhost
+#      name: 'nrgt2'
+#      username: !secret sshppilogin
+#      password: !secret sshpipass
+#      command: "sudo sh /mnt/usbhdd/nrgcounter/electo_counters/electro_counter.sh kwatthour:T2"
+#      unit_of_measurement: 'kW'
+#      value_template: >-
+#        {{ value | replace ("<ter/electo_counters/electro_counter.sh kwatthour:T2", "") | float }}
+    
+# Сенсор силы тока в сети
+#    - platform: ssh
+#      host: !secret sshhost
+#      name: 'nrgamper'
+#      username: !secret sshppilogin
+#      password: !secret sshpipass
+#      command: "sudo sh /mnt/usbhdd/nrgcounter/electo_counters/electro_counter.sh amper"
+#      unit_of_measurement: 'A'
+#      value_template: >-
+#        {{ value | replace ("<nrgcounter/electo_counters/electro_counter.sh amper", "") | float }}
+
+# Сенсор напряжения в сети
+#    - platform: ssh
+#      host: !secret sshhost
+#      name: 'nrgvolt'
+#      username: !secret sshppilogin
+#      password: !secret sshpipass
+#      command: "sudo sh /mnt/usbhdd/nrgcounter/electo_counters/electro_counter.sh volt"
+#      unit_of_measurement: 'V'
+#      value_template: >-
+#        {{ value | replace ("</nrgcounter/electo_counters/electro_counter.sh volt", "") | float }}
+    
+# Сенсор потребляемой мощности
+#    - platform: ssh
+#      host: !secret sshhost
+#      name: 'nrgpower'
+#      username: !secret sshppilogin
+#      password: !secret sshpipass
+#      command: "sudo sh /mnt/usbhdd/nrgcounter/electo_counters/electro_counter.sh power"
+#      unit_of_measurement: 'kWh'
+#      value_template: >-
+#        {{ value | replace ("<nrgcounter/electo_counters/electro_counter.sh power", "") | float }}
+      
+# Сенсор последнее включение счетчика
+#    - platform: ssh
+#      host: !secret sshhost
+#      name: 'nrglaston'
+#      username: !secret sshppilogin
+#      password: !secret sshpipass
+#      command: "sudo sh /mnt/usbhdd/nrgcounter/electo_counters/electro_counter.sh last_on"
+#      unit_of_measurement: '.'
+#      value_template: >-
+#        {{ value | replace ("<gcounter/electo_counters/electro_counter.sh last_on", "") }}
+      
+# Сенсор последнее отключение счетчика
+#    - platform: ssh
+#      host: !secret sshhost
+#      name: 'nrglastoff'
+#      username: !secret sshppilogin
+#      password: !secret sshpipass
+#      command: "sudo sh /mnt/usbhdd/nrgcounter/electo_counters/electro_counter.sh last_off"
+#      unit_of_measurement: '.'
+#      value_template: >-
+#        {{ value | replace ("<counter/electo_counters/electro_counter.sh last_off", "") }}
+
+#################################### MQTT ######################################
+
+# Сенсор показания счетчика на начала дня по первому тарифу        
+    - platform: mqtt
+      state_topic: "power/t1/daystart"
+      name: t1daystart
+      unit_of_measurement: 'kWt'
+      
+# Сенсор показания счетчика на начала дня по второму тарифу  
+    - platform: mqtt
+      state_topic: "power/t2/daystart"
+      name: t2daystart
+      unit_of_measurement: 'kWt'
+      
+# Сенсор показания счетчика на начала вчерашнего дня по первому тарифу        
+    - platform: mqtt
+      state_topic: "power/t1/yesterdaystart"
+      name: t1yesterdaystart
+      unit_of_measurement: 'kWt'
+      
+# Сенсор показания счетчика на начала вчерашнего дня по второму тарифу  
+    - platform: mqtt
+      state_topic: "power/t2/yesterdaystart"
+      name: t2yesterdaystart
+      unit_of_measurement: 'kWt'
+      
+# Сенсор показания счетчика на начала месяца по первому тарифу  
+    - platform: mqtt
+      state_topic: "power/t1/monthstart"
+      name: t1monthstart
+      unit_of_measurement: 'kWt'
+      
+# Сенсор показания счетчика на начала месяца по второму тарифу  
+    - platform: mqtt
+      state_topic: "power/t2/monthstart"
+      name: t2monthstart
+      unit_of_measurement: 'kWt'
+      
+# Сенсор показания счетчика на начала года по первому тарифу  
+    - platform: mqtt
+      state_topic: "power/t1/yearstart"
+      name: t1yearstart
+      unit_of_measurement: 'kWt'
+      
+# Сенсор показания счетчика на начала года по второму тарифу  
+    - platform: mqtt
+      state_topic: "power/t2/yearstart"
+      name: t2yearstart
+      unit_of_measurement: 'kWt'
+
+################################# Template #####################################
+
+    - platform: template
+      sensors:
+        nrgsum: # Суммарный показатель
+          friendly_name: Сумма накопленная
+          icon_template: mdi:calendar-arrow-left
+          unit_of_measurement: 'kWt'
+          value_template: "{{ ((states('sensor.nrgt1')) | float +  (states('sensor.nrgt2')) | float) | round (2) }}"
+          
+        nrgt1today:
+          friendly_name: Расход электроэнергии (T1 сегодня)
+          unit_of_measurement: 'kWt'
+          icon_template: mdi:calendar-today
+          value_template: "{{ ((states('sensor.nrgt1')) | float -  (states('sensor.t1daystart')) | float) | round (2) }}"
+
+        nrgt2today:
+          friendly_name: Расход электроэнергии (T2 сегодня)
+          unit_of_measurement: 'kWt'
+          icon_template: mdi:calendar-today
+          value_template: "{{ ((states('sensor.nrgt2')) | float -  (states('sensor.t2daystart')) | float) | round (2) }}"
+          
+        nrgttoday:
+          friendly_name: Расход электроэнергии (всего сегодня)
+          unit_of_measurement: 'kWt'
+          value_template: "{{ ((states('sensor.nrgt1today')) | float +  (states('sensor.nrgt2today')) | float) | round (2) }}"
+          
+        nrgt1yesterday:
+          friendly_name: Расход электроэнергии (T1 вчера)
+          unit_of_measurement: 'kWt'
+          icon_template: mdi:calendar-arrow-left
+          value_template: "{{ ((states('sensor.t1daystart')) | float -  (states('sensor.t1yesterdaystart')) | float) | round (2) }}"
+
+        nrgt2yesterday:
+          friendly_name: Расход электроэнергии (T2 вчера)
+          unit_of_measurement: 'kWt'
+          icon_template: mdi:calendar-arrow-left
+          value_template: "{{ ((states('sensor.t2daystart')) | float -  (states('sensor.t2yesterdaystart')) | float) | round (2) }}"
+          
+        nrgyesterday:
+          friendly_name: Расход электроэнергии (всего вчера)
+          unit_of_measurement: 'kWt'
+          icon_template: mdi:calendar-arrow-left
+          value_template: "{{ ((states('sensor.nrgt1yesterday')) | float +  (states('sensor.nrgt2yesterday')) | float) | round (2) }}"
+
+        nrgt1month:
+          friendly_name: Расход электроэнергии (T1 месяц)
+          unit_of_measurement: 'kWt'
+          value_template: "{{ ((states('sensor.nrgt1')) | float -  (states('sensor.t1monthstart')) | float) | round (2) }}"
+
+        nrgt2month:
+          friendly_name: Расход электроэнергии (T2 месяц)
+          unit_of_measurement: 'kWt'
+          value_template: "{{ ((states('sensor.nrgt2')) | float -  (states('sensor.t2monthstart')) | float) | round (2) }}"
+          
+        nrgmonth:
+          friendly_name: Расход электроэнергии (всего месяц)
+          unit_of_measurement: 'kWt'
+          value_template: "{{ ((states('sensor.nrgt1month')) | float +  (states('sensor.nrgt2month')) | float) | round (2) }}"
+          
+        nrgt1year:
+          friendly_name: Расход электроэнергии (T1 год)
+          unit_of_measurement: 'kWt'
+          value_template: "{{ ((states('sensor.nrgt1')) | float -  (states('sensor.t1yearstart')) | float) | round (2) }}"
+
+        nrgt2year:
+          friendly_name: Расход электроэнергии (T2 год)
+          unit_of_measurement: 'kWt'
+          value_template: "{{ ((states('sensor.nrgt2')) | float -  (states('sensor.t2yearstart')) | float) | round (2) }}"
+          
+        nrgyear:
+          friendly_name: Расход электроэнергии (всего год)
+          unit_of_measurement: 'kWt'
+          value_template: "{{ ((states('sensor.nrgt1year')) | float +  (states('sensor.nrgt2year')) | float) | round (2) }}"
