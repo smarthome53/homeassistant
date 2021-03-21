@@ -1,0 +1,19 @@
+shopping_list:
+  
+  # Сенсор шоппинг гиста
+  sensor:
+    - platform: command_line
+      name: shopping_list
+      command: python3 /config/shopping_list.py
+      
+  automation:
+    - alias: shoping_list_test
+      trigger:
+        - platform: zone
+          entity_id: person.man
+          zone: zone.magazin
+      action:
+        - service: notify.telegram_1
+          data:
+            title: "В Вашем списке покупок:"
+            message: "{{ states('sensor.shopping_list') }}"
