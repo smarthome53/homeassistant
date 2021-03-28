@@ -1,0 +1,73 @@
+cards:
+  - cards:
+      - content: |
+          **Будильник**
+        type: markdown
+    type: horizontal-stack
+  - cards:
+      - entity: input_boolean.alarm
+        name: Всех
+        size: 30px
+        icon: 'mdi:alarm'
+        tap_action:
+          action: toggle
+        type: 'custom:button-card'
+      - entity: input_boolean.alarm_1
+        name: 1
+        icon: 'mdi:face'
+        size: 30px
+        tap_action:
+          action: toggle
+        type: 'custom:button-card'
+      - entity: input_boolean.alarm_2
+        name: 2
+        icon: 'mdi:face-woman'
+        size: 30px
+        tap_action:
+          action: toggle
+        type: 'custom:button-card'
+      - entity: input_boolean.alarm_weekend
+        name: Выходные
+        icon: 'mdi:party-popper'
+        size: 30px
+        tap_action:
+          action: toggle
+        type: 'custom:button-card'
+    type: horizontal-stack
+  - type: conditional
+    conditions:
+      - entity: input_boolean.alarm
+        state: 'on'
+    card:
+      type: entities
+      entities:
+        - entity: input_datetime.alarm
+          name: По будням
+  - type: conditional
+    conditions:
+      - entity: input_boolean.alarm_weekend
+        state: 'on'
+    card:
+      type: entities
+      entities:
+        - entity: input_datetime.alarm_weekend
+          name: В выходные
+  - type: conditional
+    conditions:
+      - entity: input_boolean.alarm_1
+        state: 'on'
+    card:
+      type: entities
+      entities:
+        - entity: input_datetime.alarm_1
+          name: 1 по будням
+  - type: conditional
+    conditions:
+      - entity: input_boolean.alarm_2
+        state: 'on'
+    card:
+      type: entities
+      entities:
+        - entity: input_datetime.alarm_2
+          name: 2 по будням
+type: 'custom:stack-in-card'
