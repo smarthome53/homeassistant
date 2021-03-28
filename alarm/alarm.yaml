@@ -1,0 +1,225 @@
+# Будильник за счет плавного включения светильников у кровати
+alarm:
+
+  input_boolean:
+    # Будильник по будням
+    alarm:
+    # Будильник для членов семьи по будням
+    alarm_1:
+    alarm_2:
+    # Будильник по выходным
+    alarm_weekend:
+
+# Время будильника
+  input_datetime:
+    # По будням всех
+    alarm:
+      has_date: false
+      has_time: true
+    # По выходным
+    alarm_weekend:
+      has_date: false
+      has_time: true
+    alarm_1:
+      has_date: false
+      has_time: true
+    alarm_2:
+      has_date: false
+      has_time: true
+      
+  sensor:
+    - platform: template
+      sensors:
+        input_alarm_start:
+          friendly_name: Будильник будни
+          value_template: "{{ (((state_attr('input_datetime.alarm' , 'timestamp')) - (5 * 60))|timestamp_custom('%H:%M', false)) }}"
+        input_alarm_weekend_start:
+          friendly_name: Будильник выходные
+          value_template: "{{ (((state_attr('input_datetime.alarm_weekend' , 'timestamp')) - (5 * 60))|timestamp_custom('%H:%M', false)) }}"
+        input_alarm_1_start:
+          friendly_name: Будильник будни 1
+          value_template: "{{ (((state_attr('input_datetime.alarm_1' , 'timestamp')) - (5 * 60))|timestamp_custom('%H:%M', false)) }}"
+        input_alarm_2_start:
+          friendly_name: Будильник будни 2
+          value_template: "{{ (((state_attr('input_datetime.alarm_2' , 'timestamp')) - (5 * 60))|timestamp_custom('%H:%M', false)) }}"
+          
+  binary_sensor:
+    - platform: template
+      sensors:
+        alarm_start:
+          friendly_name: Будильник будни
+          value_template: "{{ states('sensor.time') == states('sensor.input_alarm_start') }}"
+        alarm_weekend_start:
+          friendly_name: Будильник выходные
+          value_template: "{{ states('sensor.time') == states('sensor.input_alarm_weekend_start') }}"
+        alarm_1_start:
+          friendly_name: Будильник будни 1
+          value_template: "{{ states('sensor.time') == states('sensor.input_alarm_1_start') }}"
+        alarm_2_start:
+          friendly_name: Будильник будни 2
+          value_template: "{{ states('sensor.time') == states('sensor.input_alarm_2_start') }}"
+      
+  automation:
+  # Выбор кого будить
+   - alias: set input boolean
+     initial_state: true
+     trigger:
+       - platform: state
+         entity_id:
+           - input_boolean.alarm
+           - input_boolean.alarm_1
+           - input_boolean.alarm_2
+         to: 'on'
+     action:
+       - choose:
+         - conditions:
+           - condition: template
+             value_template: "{{ trigger.entity_id == 'input_boolean.alarm' }}"
+           sequence:
+             - service: homeassistant.turn_off
+               entity_id: 
+                 - input_boolean.alarm_1
+                 - input_boolean.alarm_2
+         - conditions:
+           - condition: template
+             value_template: "{{ trigger.entity_id == 'input_boolean.alarm_1' }}"
+           sequence:
+             - service: homeassistant.turn_off
+               entity_id: 
+                 - input_boolean.alarm
+         - conditions:
+           - condition: template
+             value_template: "{{ trigger.entity_id == 'input_boolean.alarm_2' }}"
+           sequence:
+             - service: homeassistant.turn_off
+               entity_id: 
+                 - input_boolean.alarm
+
+
+
+   #Запуск будильника
+   - alias: run alarm
+     initial_state: true
+     mode: parallel
+     trigger:
+       # Срабатывание будильника по буднему времени для всех
+       - platform: state
+         entity_id: binary_sensor.alarm_start
+         from: 'off'
+         to: 'on'
+       # Срабатывание будильника по выходному времени для всех
+       - platform: state
+         entity_id: binary_sensor.alarm_weekend_start
+         from: 'off'
+         to: 'on'
+       # Срабатывание будильника по по будням 1
+       - platform: state
+         entity_id: binary_sensor.alarm_1_start
+         from: 'off'
+         to: 'on'
+       # Срабатывание будильника по по будням 2
+       - platform: state
+         entity_id: binary_sensor.alarm_2_start
+         from: 'off'
+         to: 'on'
+     condition:
+       - condition: state
+         entity_id: group.trackdevice
+         state: 'home'
+     action:
+       - choose:
+         - conditions:
+         # Будни, будим всех, время сработки буднее
+           - condition: state
+             entity_id: input_boolean.alarm
+             state: 'on'
+           - condition: state
+             entity_id: binary_sensor.workday_sensor
+             state: 'on'
+           - condition: template
+             value_template: "{{ trigger.entity_id == 'binary_sensor.alarm_start' }}"
+           sequence:
+            # Включение верхнии бра
+             - service: light.turn_on
+               data:
+                 entity_id: light.rooms_s_bra_up_light
+                 brightness: 255
+                 transition: 300
+             - delay: '00:02:30'
+             # Включаем нижнии бра
+             - service: light.turn_on
+               data:
+                 entity_id: light.rooms_s_bra_down_light
+                 brightness: 255
+                 transition: 150
+         - conditions:
+         # Будни, будим первого, время сработки буднее
+           - condition: state
+             entity_id: input_boolean.alarm_1
+             state: 'on'
+           - condition: state
+             entity_id: binary_sensor.workday_sensor
+             state: 'on'
+           - condition: template
+             value_template: "{{ trigger.entity_id == 'binary_sensor.alarm_1_start' }}"
+           sequence:
+             # Включение верхнего бра
+             - service: light.turn_on
+               data:
+                 entity_id: light.0x086bd7fffe1aaf8f_light
+                 brightness: 255
+                 transition: 300
+             - delay: '00:02:30'
+             # Включение нижнего бра
+             - service: light.turn_on
+               data:
+                 entity_id: light.0x086bd7fffe2e7e26_light
+                 brightness: 255
+                 transition: 130
+         - conditions:
+         # Будни, будим второго, время сработки буднее
+           - condition: state
+             entity_id: input_boolean.alarm_2
+             state: 'on'
+           - condition: state
+             entity_id: binary_sensor.workday_sensor
+             state: 'on'
+           - condition: template
+             value_template: "{{ trigger.entity_id == 'binary_sensor.alarm_2_start' }}"
+           sequence:
+             # Включение верхнего бра
+             - service: light.turn_on
+               data:
+                 entity_id: light.0x086bd7fffe2e16fc_light
+                 brightness: 255
+                 transition: 300
+             - delay: '00:02:30'
+              # Включение нижнего бра
+             - service: light.turn_on
+               data:
+                 entity_id: light.0x086bd7fffe38fc64_light
+                 brightness: 255
+                 transition: 150
+        # Будильник по выходным для всех членов семьи по времени выходного будильника         
+         - conditions:
+           - condition: state
+             entity_id: binary_sensor.workday_sensor
+             state: 'off'
+           - condition: state
+             entity_id: input_boolean.alarm_weekend
+             state: 'on'
+           - condition: template
+             value_template: "{{ trigger.entity_id == 'binary_sensor.alarm_weekend_start' }}"
+           sequence:
+                 # Включение света
+             - service: light.turn_on
+               data:
+                 entity_id: light.rooms_s_bra_up_light
+                 brightness: 255
+                 transition: 300
+             - delay: '00:02:30'
+             - service: light.turn_on
+               data:
+                 entity_id: light.rooms_s_bra_down_light
+                 brightness: 255
+                 transition: 150
