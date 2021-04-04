@@ -1,0 +1,143 @@
+################################# Фумигатор ####################################
+fumigator:
+
+# Счетчик длительности жизни емкости для жидкости фумигатора
+  counter:
+
+    fumigator_life_max:
+      initial: 0
+      step: 1
+    
+# Выбор количества ночей, на которое хватает жидкости
+  input_number:
+    fumigator_night_life:
+      name: 'Fumigator enough'
+      max: 60
+      min: 30
+      step: 30
+
+
+  automation:
+# Включение Розетки 4 в комнате, в которую устанновлен фумигатор в 22:30
+  - alias: "fumigator_on"
+    initial_state: true
+    trigger:
+      - platform: time
+        at: "22:30:00"
+    action: 
+      - service: switch.turn_on
+        entity_id: switch.0x00158d0004037df5_switch
+      
+# Выключение Розетки 4 в комнате, в которую устанновлен фумигатор в 6:30 по будням
+  - alias: "fumigator_off_workday"
+    initial_state: true
+    trigger:
+      - platform: time
+        at: "06:30:00"
+    condition:
+      - condition: state
+        entity_id: binary_sensor.workday_sensor
+        state: 'on'
+    action: 
+      - service: switch.turn_off
+        entity_id: switch.0x00158d0004037df5_switch
+
+      
+# Выключение Розетки 4 в комнате, в которую устанновлен фумигатор в 9:30 по будням
+  - alias: "fumigator_off_weekend"
+    initial_state: true
+    trigger:
+      - platform: time
+        at: "9:30:00"
+    condition:
+      - condition: state
+        entity_id: binary_sensor.workday_sensor
+        state: 'off'
+    action: 
+      - service: switch.turn_off
+        entity_id: switch.0x00158d0004037df5_switch
+
+        
+# Подсчет времени работы фумигатора
+  - alias: "count_fumigator_life"
+    trigger:
+      - platform: time_pattern
+        minutes: 25
+    condition:
+      - condition: state
+        entity_id: switch.0x00158d0004037df5_switch
+        state: 'on'
+      - condition: state
+        entity_id: automation.fumigator_on
+        state: 'on'
+      - condition: numeric_state
+        entity_id: sensor.0x00158d0004037df5_power
+        above: 5
+        below: 6
+    action:
+      - service: counter.increment
+        entity_id: counter.fumigator_life_max
+        
+
+# Уведомление, когда заканчивается жидкость в фумигаторе (за неделю)
+  - alias: "notify_fumigator_life_end_7_night"
+    initial_state: true
+    trigger: 
+      platform: state
+      entity_id: sensor.fumigators_day_expect
+      to: "7"
+    action:
+      - service: shopping_list.add_item
+        data:
+          name: "Жидкость для фумигатора"
+      - service: notify.telegram_1
+        data:
+          message: "Жидкость для фугатора скоро закончится, жидкость добавлена в список покупок"
+      - service: script.turn_on
+        entity_id: script.update_shopping_list
+          
+# Уведомление, когда жидкость пора менять 
+  - alias: "notify_fumigator_life_end"
+    initial_state: true
+    trigger: 
+      platform: state
+      entity_id: sensor.fumigators_day_expect
+      to: "1"
+    action:
+      - service: notify.telegram_1
+        data:
+          message: "Замените жидкость для фумигатора"
+
+
+# Скрипт для ручного сброса счетчика, после замены жидкости.
+  script:
+    fumigator_counter_reset:
+      alias: Fumigator counter reset
+      sequence:
+        - service: counter.reset
+          entity_id: counter.fumigator_life_max
+
+
+  sensor:
+# Сенсор, на сколько ночей еще хватит
+  - platform: template
+    sensors:
+      fumigators_day_expect:
+        friendly_name: "Осталось проработать ночей"
+        value_template: "{{ (states('input_number.fumigator_night_life') | int - (states('counter.fumigator_life_max') | int / 8) | round(0)) }}"
+        icon_template: mdi:clock-outline
+
+# Сенсор, сколько ночей уже проработал
+      fumigators_day_work:
+        friendly_name: "Проработал ночей"
+        value_template: "{{ (states('counter.fumigator_life_max') | int / 8) | round(0) }}"
+        icon_template: mdi:clock-outline
+      
+
+
+
+
+
+
+
+    
